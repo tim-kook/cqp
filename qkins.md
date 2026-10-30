@@ -1,143 +1,136 @@
-# Qiskit Setup for Jupyter Notebook on Windows
+# Qiskit Installation with Jupyter Notebook
 
-This guide installs Qiskit and runs **Jupyter Notebook in your web browser**. It does not require VS Code.
+**Complete setup from a blank Windows PC**
 
-## What you will install
+## Aim
 
-- 64-bit CPython 3.14
-- Qiskit and its visualization support
-- Qiskit Aer for local simulation
-- Qiskit IBM Runtime for IBM Quantum service examples
-- Jupyter Notebook, Jupyter, and the IPython kernel
+Starting with no Python installed, install Python for your Windows account, set up Qiskit and its local simulator, then run the practical in classic Jupyter Notebook. VS Code is not required.
 
-The version numbers in the setup PDF are a dated snapshot, so these instructions install compatible versions available when you run the commands rather than pinning those old versions.
+## Before you start
 
-## 1. Install Python
+- A 64-bit Windows 10 or 11 PC, a web browser, and an internet connection.
+- Use a standard user account. The per-user Python installation usually does not need administrator rights, but college restrictions can still block software or downloads.
 
-Install **64-bit Python 3.14** from [python.org](https://www.python.org/downloads/windows/). After setup, open a new PowerShell window and check that Python is available and 64-bit:
+## A. Install Python from the official source
 
-```powershell
-py -3.14 --version
-py -3.14 -c "import struct; print(struct.calcsize('P') * 8)"
-```
+### 1. Download Python
 
-The second command should print `64`. Qiskit 2.x supports 64-bit Windows and CPython. See the [Qiskit installation guide](https://quantum.cloud.ibm.com/docs/en/guides/install-qiskit).
+Open the official [Python releases for Windows](https://www.python.org/downloads/windows/) page. Choose a Python 3.13.x release and download its **Windows installer (64-bit)**. Use the normal installer, not the embeddable ZIP package.
 
-## 2. Create and open a project folder
+### 2. Run the installer
 
-Create a folder for the practicals, for example:
+Open the downloaded installer. On its first screen, check **Add python.exe to PATH**, then click **Install Now**. This installs Python for your account. Wait for the success message and click **Close**.
 
-```text
-D:\UniWork\Python\QuantumComputing
-```
+If the installer is blocked by Windows or college policy, ask the lab administrator to install the approved Python version. Do not choose an all-users installation on a managed PC.
 
-If you do not have a `D:` drive, use a folder in Documents instead. Open PowerShell in the folder you chose.
+### 3. Open PowerShell and verify Python and pip
 
-## 3. Create and activate a Python environment
-
-Run these commands in PowerShell, from the project folder:
+Close any terminal windows opened before installation. Open Windows PowerShell from the Start menu as your normal user, then run:
 
 ```powershell
-py -3.14 -m venv .venv
+python --version
+python -m pip --version
+python -c "import struct; print(struct.calcsize('P') * 8, 'bit')"
+```
+
+Expected: Python 3.13.x, a pip version, and `64 bit`. If Python is not found, open a new PowerShell window and try again. Troubleshooting is at the end of this guide.
+
+## B. Prepare the project environment
+
+### 4. Open PowerShell in your practical folder
+
+Create your folder in File Explorer first. Open that folder, click its address bar, type `powershell`, and press Enter. Run the remaining commands in that PowerShell window.
+
+### 5. Create an isolated Python environment
+
+This keeps the practical's packages separate from Windows and other Python projects:
+
+```powershell
+python -m venv .venv
+```
+
+### 6. Set the policy for your account
+
+Run the requested command in this regular PowerShell window. It changes the policy for **CurrentUser** only. If a confirmation prompt appears, type **Y** and press Enter.
+
+```powershell
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+```
+
+Check the policy scopes:
+
+```powershell
+Get-ExecutionPolicy -List
+```
+
+If college Group Policy does not override it, `CurrentUser` should show `RemoteSigned`. A college `MachinePolicy` or `UserPolicy` can override this setting.
+
+### 7. Activate the project environment
+
+Run this in the practical folder. The PowerShell prompt should start with `(.venv)`:
+
+```powershell
 .\.venv\Scripts\Activate.ps1
 ```
 
-When activation succeeds, the prompt should begin with `(.venv)`.
+#### If activation is blocked
 
-### If PowerShell blocks activation
+Do not try to override a college policy. Skip activation and use `.\.venv\Scripts\python.exe` instead of `python` in Steps 8-10, and `.\.venv\Scripts\jupyter.exe` instead of `jupyter` in Step 11.
 
-Open **Command Prompt** in the same project folder and run:
+Use these commands instead of Steps 8-11:
 
-```cmd
-.venv\Scripts\activate.bat
+```powershell
+.\.venv\Scripts\python.exe -m pip install --upgrade pip
+.\.venv\Scripts\python.exe -m pip install "qiskit[visualization]" matplotlib
+.\.venv\Scripts\python.exe -m pip install qiskit-aer notebook ipykernel qiskit-ibm-runtime
+.\.venv\Scripts\python.exe -m ipykernel install --user --name qiskit
+.\.venv\Scripts\jupyter.exe notebook
 ```
 
-Continue with the remaining commands in the same terminal where the environment is active.
+## C. Install Qiskit and open Notebook
 
-## 4. Install Qiskit and Jupyter packages
+### 8. Upgrade pip
 
-First update pip:
+With `(.venv)` active, upgrade the package installer:
 
 ```powershell
 python -m pip install --upgrade pip
 ```
 
-Then install the packages used by the lab setup:
+### 9. Install the Qiskit, Aer, visualization, and Jupyter packages
+
+Install Qiskit's visualization extra and Matplotlib for plots, Qiskit Aer for local simulation, Notebook and IPykernel, and the IBM Quantum Runtime client:
 
 ```powershell
-python -m pip install qiskit qiskit-aer qiskit-ibm-runtime matplotlib "qiskit[visualization]" notebook jupyter ipykernel
+python -m pip install "qiskit[visualization]" matplotlib
+python -m pip install qiskit-aer notebook ipykernel qiskit-ibm-runtime
 ```
 
-The `notebook` package provides the Jupyter Notebook browser interface. The visualization extra provides Qiskit visualization dependencies. Aer is used for local simulation. IBM Runtime is needed for examples that connect to IBM's quantum service; connecting to that service also requires an IBM Quantum account and separate account setup. Refer to the [Qiskit visualization guide](https://quantum.cloud.ibm.com/docs/en/api/qiskit/visualization) and [IBM Quantum Runtime installation guide](https://quantum.cloud.ibm.com/docs/en/guides/install-qiskit-runtime).
+The visualization extra supplies Qiskit's plotting requirements; Matplotlib is also listed explicitly for practical work. The Runtime client is included for hardware exercises, but using real hardware requires a suitable IBM Quantum account and connection.
 
-## 5. Register the environment as a notebook kernel
+Wait for pip to finish and return to the prompt. Keep the terminal open if it is still downloading or installing.
 
-This makes the environment available in Jupyter's kernel menu:
+### 10. Register the notebook kernel
+
+Give this environment a recognizable name in Jupyter's kernel menu:
 
 ```powershell
-python -m ipykernel install --user --name qiskit-lab --display-name "Python (Qiskit Lab)"
+python -m ipykernel install --user --name qiskit
 ```
 
-## 6. Check the installation
+### 11. Start Jupyter Notebook
 
-Run these commands in the activated terminal:
-
-```powershell
-python -m pip check
-jupyter notebook --version
-```
-
-`pip check` should report no broken requirements.
-
-## 7. Start Jupyter Notebook
-
-From the project folder, run:
+Start the classic Notebook server from the practical folder. Keep this PowerShell window open while using Notebook:
 
 ```powershell
 jupyter notebook
 ```
 
-A browser page should open. Keep the terminal window open while using Jupyter Notebook. Create a new Python notebook and choose **Python (Qiskit Lab)** as the kernel. Jupyter Notebook is a browser-based application; it runs locally on your computer. See [Project Jupyter's installation guide](https://github.com/jupyter/jupyter.github.io/blob/main/install.md).
+A browser tab should open. If not, copy the local URL printed in PowerShell into your browser. In Jupyter, choose **New > Python (qiskit)**. Save the notebook as `Qiskit_Practical_Test.ipynb`.
 
-## 8. Verify Qiskit from a notebook cell
+## D. Verify the installation
 
-Run this in a notebook cell:
-
-```python
-import sys
-import qiskit
-import qiskit_aer
-import qiskit_ibm_runtime
-import matplotlib
-import ipykernel
-
-print("Python:", sys.executable)
-print("Qiskit:", qiskit.__version__)
-print("Aer:", qiskit_aer.__version__)
-print("Runtime:", qiskit_ibm_runtime.__version__)
-print("Matplotlib:", matplotlib.__version__)
-print("IPykernel:", ipykernel.__version__)
-```
-
-The `Python:` path should point to the `.venv` folder in your project.
-
-## 9. Check circuit drawing
-
-Run this in another notebook cell:
-
-```python
-from qiskit import QuantumCircuit
-
-qc = QuantumCircuit(1)
-qc.h(0)
-qc.draw(output="mpl")
-```
-
-The notebook should display the circuit diagram.
-
-## 10. Check local simulation with Aer
-
-If your practicals use Aer, run this cell:
+In the first notebook cell, paste and run this code. It creates a one-qubit circuit, applies a Hadamard gate, measures the qubit, and displays the circuit diagram:
 
 ```python
 from qiskit import QuantumCircuit
@@ -146,20 +139,56 @@ from qiskit_aer import AerSimulator
 qc = QuantumCircuit(1, 1)
 qc.h(0)
 qc.measure(0, 0)
-
-simulator = AerSimulator()
-result = simulator.run(qc, shots=100).result()
-print(result.get_counts())
+qc.draw(output="mpl")
 ```
 
-The output should show counts for measurement outcomes `0` and `1`. The counts can vary between runs.
+In a second cell, run the simulator and show the measurement counts:
 
-## Common issues
+```python
+result = AerSimulator().run(qc, shots=1024).result()
+result.get_counts()
+```
 
-- **`py` is not recognized:** Install Python from [python.org](https://www.python.org/downloads/windows/), open a new terminal, and try the version check again.
-- **PowerShell says scripts are disabled:** Use the Command Prompt activation instructions in Step 3.
-- **`ModuleNotFoundError` in the notebook:** The notebook may be using a different kernel. In the kernel menu, select **Python (Qiskit Lab)**, then restart the kernel and rerun the cell.
-- **Qiskit circuit drawing fails:** Confirm `qiskit[visualization]` and `matplotlib` were installed in the active `.venv`; restart the notebook kernel afterward.
-- **Aer installation fails:** Confirm Python is 64-bit and pip is up to date. If it still fails, copy the complete error message so the failing dependency can be identified.
+The counts for `0` and `1` should be roughly balanced, though the exact numbers vary between runs.
 
-To stop the local notebook server, return to its terminal and press `Ctrl+C`; confirm if prompted.
+To record the installed package versions, run another cell:
+
+```python
+import qiskit
+import qiskit_aer
+import matplotlib
+import notebook
+import ipykernel
+import qiskit_ibm_runtime
+
+print("Qiskit:", qiskit.__version__)
+print("Aer:", qiskit_aer.__version__)
+print("Matplotlib:", matplotlib.__version__)
+print("Notebook:", notebook.__version__)
+print("IPykernel:", ipykernel.__version__)
+print("IBM Runtime:", qiskit_ibm_runtime.__version__)
+```
+
+**Successful result:** the notebook displays the circuit diagram, executes without import errors, and returns measurement counts from Aer.
+
+## Troubleshooting
+
+| Problem | What to do |
+|---|---|
+| Python installer is blocked | Use **Install Now** for a current-user install. If Windows or college policy still blocks it, ask the lab administrator to install the approved Python version; do not choose an all-users install. |
+| `python` is not recognized | Close and reopen PowerShell. If it still fails, rerun the Python installer and ensure **Add python.exe to PATH** is selected. If `py` works, use `py -3.13 -m venv .venv` for Step 5. |
+| Notebook says `No module named qiskit` | In Jupyter, use **Kernel > Change Kernel**, select **Python (qiskit)**, then restart the kernel. |
+| Aer install fails | Confirm Python 3.13 is 64-bit and the PC can reach PyPI. Use the college-approved package mirror if downloads are blocked; do not try to compile Aer from source on the lab PC. |
+| PowerShell blocks `Activate.ps1` | Run `Get-ExecutionPolicy -List`. If `MachinePolicy` or `UserPolicy` is set by the college, use the direct `.venv` paths in Step 7's fallback note. |
+| `jupyter` is not found | Wait for Step 9 to finish. If activated, confirm `(.venv)` is in the prompt before Step 11. If using the policy fallback, use `.\.venv\Scripts\jupyter.exe`. |
+| College network blocks package downloads | Use the college-approved network or Python package mirror, or ask the lab administrator for the approved install method. |
+
+Save the notebook when finished. Stop the server with **Ctrl+C** in PowerShell.
+
+## References
+
+- [Python Windows setup](https://docs.python.org/3.13/using/windows.html) and [Python downloads](https://python.org/downloads/windows/)
+- [Install Qiskit](https://quantum.cloud.ibm.com/docs/en/guides/install-qiskit) and [Qiskit visualization](https://quantum.cloud.ibm.com/docs/en/api/qiskit/visualization)
+- [Install IBM Quantum Runtime](https://quantum.cloud.ibm.com/docs/en/guides/install-qiskit-runtime)
+- [Install Jupyter Notebook](https://jupyter.org/install)
+- [PowerShell execution policy](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_execution_policies?view=powershell-7.5)
